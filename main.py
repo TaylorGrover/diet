@@ -1,3 +1,5 @@
+#! /data/data/com.termux/files/usr/bin/python3
+
 ### This file contains a couple of input verification functions
 
 from database import Database
@@ -23,6 +25,8 @@ def get_number(msg,num_type):
     while True or not isinstance(return_value, num_type):
         try:
             return_value = input(msg)
+            if "/" in return_value:
+                return_value = float(return_value.split("/")[0])/float(return_value.split("/")[1])
             return_value = num_type(return_value)
         except:
             print("\0")
@@ -93,10 +97,10 @@ def get_current_log(log_path):
 def add_to_log(serving,servings,log_path):
     current_log,lines,quantities = get_current_log(log_path)
     if current_log == "":
-        print("First entry, confirmed.")
         with open(log_path,"w") as f:
-            f.write("1\t" + repr(serving) + "\n")
-            f.write(str(format(serving.carbs*4 + serving.fats*9 + serving.protein*4,".2f")) + "\t" + str(serving.carbs) + "," + str(serving.fats) + "," + str(serving.protein))
+            print("Writing in empty log")
+            f.write(str(servings)+"\t" + repr(serving) + "\n")
+            f.write(str(format(servings*(serving.carbs*4 + serving.fats*9 + serving.protein*4),".2f")) + "\t" + str(servings*serving.carbs) + "," + str(servings*serving.fats) + "," + str(servings*serving.protein))
     else:
         calories = float(quantities.pop(-1).strip())
         macros = lines.pop(-1).strip()
@@ -110,25 +114,19 @@ def add_to_log(serving,servings,log_path):
             index = lines.index(repr(serving))
             quantities[index] = float(quantities[index]) + servings
         else:
-            print("Second-level else statement entered.")
             for i in range(len(lines)):
                 if serving.name <= lines[i]:
-                    print("If statement entered.")
                     lines.insert(i,repr(serving))
                     quantities.insert(i,servings)
-                else:
-                    print("Else statement entered.")
+                    break
+                elif i == len(lines)-1:
                     lines.append(repr(serving))
-                    quantites.append(servings)
+                    quantities.append(servings)
 
         calories = carbs*4 + fats*9 + protein*4
 
         quantities.append(calories)
         lines.append(str(format(carbs,".2f")) + "," + str(format(fats,".2f")) + "," + str(format(protein,".2f")))
-
-        print("Lines: " + str(lines))
-        print("Quantities: " + str(quantities))
-        print("Second lines print: " + str(lines))
 
         with open(log_path,"w") as f:
             for i in range(len(lines)):
@@ -136,20 +134,25 @@ def add_to_log(serving,servings,log_path):
 
 def show_meals(log_path):
     current_log,lines,quantities = get_current_log(log_path)
-    print(lines)
+    calories = quantities.pop(-1)
+    carbs,fats,protein = lines.pop(-1).split(",")
+    for quantity,line in zip(quantities,lines):
+        print(str(quantity) + "\t" + str(line))
+    print("\nTotal Calories: %.2f\nCarbs: %.2f\nFats: %.2f g\nProtein: %.2f g" % (float(calories),float(carbs),float(fats),float(protein)))
+    
 
 # This very simple program will execute sequentially, and will exit if anything goes wrong.
 # There are only two main options: 1. Meal entries, or 2. Create new food items for the database
 
 # Directory strings (need to be changed depending on platform)
-database_dir = "/home/jonaz/.foods/"
-log_dir = "/home/jonaz/Documents/food_logs/"
+database_dir = "/data/data/com.termux/files/home/.food/"
+log_dir = "/data/data/com.termux/files/home/food_logs/"
 
 # First thing to do is get the database
 database = Database(dirpath=database_dir,filename="foods.dat",fieldname="name")
 
 # Strings
-start_msg = "Enter <q> to exit.\n\n1. Enter new meal\n2. Add a food item to the database\n3. View Catalog\n4. Show Current Log\n: "
+start_msg = "\nEnter <q> to exit.\n\n1. Enter new meal\n2. Add a food item to the database\n3. View Catalog\n4. Show Current Log\n: "
 add_meal_msg = "Add an item from the list: "
 
 # The directory name for the log file. Will use the same file for a 24 hour period because the name
@@ -174,3 +177,4 @@ while user_input_1 != 'q':
     elif user_input_1 == 4:
         show_meals(log_path)
     user_input_1 = get_number(start_msg,int)
+    cls()
