@@ -19,4 +19,4 @@ class Serving:
         self.fats = macros[1]
         self.protein = macros[2]
     def __repr__(self):
-        return self.name + ": (" + str(self.carbs) + " g carbs, " + str(self.fats) + " g fat, " + str(self.protein) + " g protein)"
+        return "%s: (%.3f g carbs, %.3f g fats, %.3f g protein)" % (self.name, self.carbs, self.fats, self.protein)

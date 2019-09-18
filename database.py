@@ -18,8 +18,8 @@ class Database:
         else:
             self.pathname = self.dirpath + "/" + filename
         self.sorted = False
-
         self.load_list()
+        self.sort()
 
     def __iter__(self):
         return self
@@ -34,6 +34,19 @@ class Database:
     def __len__(self):
         return len(self.data)
 
+    # This overwrites the database file with the current values in the list
+    def commit(self):
+        with open(self.pathname, "wb") as f:
+            for obj in self.data:
+                pickle.dump(obj,f)
+
+    # Method to remove items by index
+    def pop(self,index):
+        item = self.data.pop(index)
+        self.commit()
+        return item
+
+    # Method to be called from user side for adding new items
     def add(self,new_item):
         if not self.item_exists(new_item):
             self.put(new_item)
@@ -88,7 +101,9 @@ class Database:
             write_options = "ab"
         elif not self._check_hidden_dir():
             os.mkdir(self.dirpath)
-        self._write_item(new_object,write_options)
+        with open(self.pathname,write_options) as f:
+            pickle.dump(new_object,f)
+        #self._write_item(new_object,write_options)
                 
     def _check_hidden_dir(self):
         dir_exists = False
@@ -97,7 +112,3 @@ class Database:
         else:
             dir_exists = False
         return dir_exists
-
-    def _write_item(self,new_object,write_options):
-        with open(self.pathname,write_options) as f:
-            pickle.dump(new_object,f)

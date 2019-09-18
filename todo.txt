@@ -1,0 +1,8 @@
+☐  Add calorie estimation entries (top priority)
+☐  Add entry removal feature (medium priority)
+	- Not sure what this will require. Possibly complete rewrite of file. Because this
+		is not scaling up to terabytes of files (just overwrite file)
+☑  Implement database item removal feature (not top priority)
+
+☑  Sort database on start
+☑  Format output of repeating decimals 

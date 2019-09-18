@@ -7,35 +7,8 @@ import os
 from serving import Serving
 import sys
 import time
+from utilities import *
 
-def cls():
-    os.system("clear")
-
-# Get a string from the user
-def get_string(msg):
-    user_input = input(msg)
-    if user_input == "q":
-        print("Exiting.")
-        sys.exit(0)
-    return user_input
-
-# Pass a message and a numerical type to get user input.
-def get_number(msg,num_type):
-    return_value = 0
-    while True or not isinstance(return_value, num_type):
-        try:
-            return_value = input(msg)
-            if "/" in return_value:
-                return_value = float(return_value.split("/")[0])/float(return_value.split("/")[1])
-            return_value = num_type(return_value)
-        except:
-            print("\0")
-            if return_value == 'q':
-                sys.exit(0)
-            print("Input requires a " + str(num_type) + ". Enter q to exit.")
-        else:
-            break
-    return return_value
 
 def add_meal(msg,db):
     list_items(db)
@@ -44,11 +17,6 @@ def add_meal(msg,db):
         meal_index = get_number(msg)
     servings = get_number("Enter the number of servings: ",float)
     return db[meal_index],servings
-
-def list_items(db):
-    for i, item in enumerate(db):
-        print(str(i) + ". " + repr(item))
-    print()
 
 def create_new_food_item(db):
     list_items(db)
@@ -66,18 +34,6 @@ def create_new_food_item(db):
     serving_description = get_string("Enter a serving description: (i.e. macros PER WHAT): ")
     new_serving = Serving(food_name,macros,serving_description)
     db.add(new_serving)
-
-def path_exists(log_path):
-    exists = False
-    file_name = log_path.split("/")[-1]
-    dir_name = log_path[:-len(file_name)]
-    if os.path.exists(dir_name):
-        if os.path.isfile(log_path):
-            exists = True
-    else:
-        # In addition to checking whether the file exists, if the directory does not exist then it is created here
-        os.mkdir(dir_name)
-    return exists
 
 def get_current_log(log_path):
     lines = []
@@ -139,7 +95,16 @@ def show_meals(log_path):
     for quantity,line in zip(quantities,lines):
         print(str(quantity) + "\t" + str(line))
     print("\nTotal Calories: %.2f\nCarbs: %.2f\nFats: %.2f g\nProtein: %.2f g" % (float(calories),float(carbs),float(fats),float(protein)))
-    
+
+# Function to estimate the macronutrients of a food entry
+def estimate_calories(log_path):
+    print("Estimate entry calories called. (Functionality not yet added.)")
+    current_log,lines,quantities = get_current_log(log_path)
+
+## Delete entry from meal log (removal of calories and macros)
+def delete_entry():
+    print("Delete entry called. (Functionality not yet added.)")
+    pass
 
 # This very simple program will execute sequentially, and will exit if anything goes wrong.
 # There are only two main options: 1. Meal entries, or 2. Create new food items for the database
@@ -152,7 +117,7 @@ log_dir = "/data/data/com.termux/files/home/food_logs/"
 database = Database(dirpath=database_dir,filename="foods.dat",fieldname="name")
 
 # Strings
-start_msg = "\nEnter <q> to exit.\n\n1. Enter new meal\n2. Add a food item to the database\n3. View Catalog\n4. Show Current Log\n: "
+start_msg = "\nEnter <q> to exit.\n\n1. Enter new meal\n2. Add a food item to the database\n3. View Catalog\n4. Show Current Log\n5. Estimate calories (for meals too complex to calculate)\n6. Delete meal entry\n7. Remove database item\n: "
 add_meal_msg = "Add an item from the list: "
 
 # The directory name for the log file. Will use the same file for a 24 hour period because the name
@@ -176,5 +141,11 @@ while user_input_1 != 'q':
         list_items(database)
     elif user_input_1 == 4:
         show_meals(log_path)
+    elif user_input_1 == 5:
+        estimate_calories(log_path)
+    elif user_input_1 == 6:
+        delete_entry()
+    elif user_input_1 == 7:
+        remove_database_item(database)
     user_input_1 = get_number(start_msg,int)
     cls()
