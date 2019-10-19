@@ -15,7 +15,12 @@ def add_meal(msg,db):
     meal_index = get_number(msg,int)
     while meal_index > len(db) or meal_index < 0:
         meal_index = get_number(msg)
-    servings = get_number("Enter the number of servings: ",float)
+    serving_type = db[meal_index].description
+    if serving_type[-1] != 's':
+        serving_type += 's'
+    if serving_type == "":
+        serving_type = "servings"
+    servings = get_number("Enter the number of " + serving_type + ": ",float)
     return db[meal_index],servings
 
 def create_new_food_item(db):
