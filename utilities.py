@@ -22,9 +22,9 @@ def get_number(msg,num_type):
     return_value = 0
     while True or not isinstance(return_value, num_type):
         try:
-            return_value = input(msg)
-            if "/" in return_value:
-                return_value = float(return_value.split("/")[0])/float(return_value.split("/")[1])
+            return_value = eval(input(msg))
+            '''if "/" in return_value:
+                return_value = float(return_value.split("/")[0])/float(return_value.split("/")[1])'''
             return_value = num_type(return_value)
         except:
             print("\0")
@@ -50,6 +50,17 @@ def path_exists(log_path):
 def remove_database_item(db):
     list_items(db)
     index = get_number("Enter index of database item to remove: ",int)
-    db.pop(index)
-    pass
+    y_or_n = ""
+    while (y_or_n != "y") and (y_or_n != "n"):
+        y_or_n = input("Are you sure? (Y/n)").lower()
+    if y_or_n == "y":
+        db.pop(index)
+    else:
+        return 
 
+# convert a list of items into the same type
+def convert(array,object_type):
+    new_array = []
+    for item in array:
+        new_array.append(object_type(item))
+    return new_array

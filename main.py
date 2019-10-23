@@ -107,12 +107,61 @@ def estimate_calories(log_path):
     current_log,lines,quantities = get_current_log(log_path)
 
 ## Delete entry from meal log (removal of calories and macros)
-def delete_entry():
-    print("Delete entry called. (Functionality not yet added.)")
-    pass
+def delete_entry(db,log_path):
+    current_log,lines,quantities = get_current_log(log_path)
+    list_items(db)
+    meal_index = get_number("Enter the index of the item to remove servings from: ",int) 
+    if not db[meal_index].name in current_log:
+        print("Food not found in current log.")
+        return
+    for i, line in enumerate(lines):
+        if db[meal_index].name in line:
+            quantity = quantities[i]
+            break
+    # Get the number of servings to remove. If the number exceeds the servings in the current logged entry then return to the main loop.
+    serving_type = db[meal_index].description
+    if not serving_type[-1] == 's':
+        serving_type += "s"
+    print(quantity + " " + serving_type + ":\t" + line)
+    servings_to_remove = get_number("Enter number of " + serving_type + " to remove: ",float)
+    if servings_to_remove > float(quantity):
+        print("\nNegative values encountered. Returning to main.")
+        return 
+    carb_ratio = db[meal_index].carbs
+    fat_ratio = db[meal_index].fats
+    protein_ratio = db[meal_index].protein
+
+    # Macronutrients to be removed
+    carbs_neg = servings_to_remove*carb_ratio
+    fat_neg = servings_to_remove*fat_ratio
+    protein_neg = servings_to_remove*protein_ratio
+
+    carbs,fats,protein = convert(lines[-1].split(","),float)
+    carbs -= carbs_neg
+    fats -= fat_neg
+    protein -= protein_neg
+    calories = str(carbs*4 + fats*9 + protein*4)
+    carbs,fats,protein = convert([carbs,fats,protein],str)
+    quantities[-1] = calories
+    lines[-1] = carbs + "," + fats + "," + protein
+
+    new_lines = []
+
+    # Reassemble the lines for the food log
+    for i, line in enumerate(lines):
+        if db[meal_index].name in line:
+            quantities[i] = str(float(quantities[i]) - servings_to_remove)
+        if float(quantities[i]) != 0:
+            new_lines.append(quantities[i] + "\t" + line)
+    print("Original: \n"+ current_log)
+    with open(log_path,"w") as f:
+        for line in new_lines:
+            f.write(line + "\n")
 
 # This very simple program will execute sequentially, and will exit if anything goes wrong.
 # There are only two main options: 1. Meal entries, or 2. Create new food items for the database
+
+# There are some inconsistencies with how the global and local variables are handled inside functions...
 
 # Directory strings (need to be changed depending on platform)
 database_dir = "/data/data/com.termux/files/home/.food/"
@@ -149,7 +198,7 @@ while user_input_1 != 'q':
     elif user_input_1 == 5:
         estimate_calories(log_path)
     elif user_input_1 == 6:
-        delete_entry()
+        delete_entry(database,log_path)
     elif user_input_1 == 7:
         remove_database_item(database)
     user_input_1 = get_number(start_msg,int)
