@@ -9,6 +9,7 @@ import sys
 import time
 from utilities import *
 
+DEBUG=False
 
 def add_meal(msg,db):
     list_items(db)
@@ -94,12 +95,15 @@ def add_to_log(serving,servings,log_path):
                 f.write(str(quantities[i]) + "\t" + lines[i] + "\n")
 
 def show_meals(log_path):
-    current_log,lines,quantities = get_current_log(log_path)
-    calories = quantities.pop(-1)
-    carbs,fats,protein = lines.pop(-1).split(",")
-    for quantity,line in zip(quantities,lines):
-        print(str(quantity) + "\t" + str(line))
-    print("\nTotal Calories: %.2f\nCarbs: %.2f\nFats: %.2f g\nProtein: %.2f g" % (float(calories),float(carbs),float(fats),float(protein)))
+    if os.path.isfile(log_path):
+        current_log,lines,quantities = get_current_log(log_path)
+        calories = quantities.pop(-1)
+        carbs,fats,protein = lines.pop(-1).split(",")
+        for quantity,line in zip(quantities,lines):
+            print(str(quantity) + "\t" + str(line))
+        print("\nTotal Calories: %.2f\nCarbs: %.2f\nFats: %.2f g\nProtein: %.2f g" % (float(calories),float(carbs),float(fats),float(protein)))
+    else:
+        print("No logs exist currently.")
 
 # Function to estimate the macronutrients of a food entry
 def estimate_calories(log_path):
@@ -157,49 +161,83 @@ def delete_entry(db,log_path):
     with open(log_path,"w") as f:
         for line in new_lines:
             f.write(line + "\n")
+def search_database(db):
+    list_items(db)
+    search_string = input("Enter search string: ")
+    results = find(search_string,db)
+    for result in results:
+        print(result)
+    
+# TODO: 
+def view_previous_logs():
+    year = get_number("Year: ", int)
+    month = get_number("Month: ", int)
+    day = get_number("Day: ", int)
 
 # This very simple program will execute sequentially, and will exit if anything goes wrong.
 # There are only two main options: 1. Meal entries, or 2. Create new food items for the database
 
 # There are some inconsistencies with how the global and local variables are handled inside functions...
 
-# Directory strings (need to be changed depending on platform)
-database_dir = "/data/data/com.termux/files/home/.food/"
-log_dir = "/data/data/com.termux/files/home/food_logs/"
+
 
 # First thing to do is get the database
-database = Database(dirpath=database_dir,filename="foods.dat",fieldname="name")
-
-# Strings
-start_msg = "\nEnter <q> to exit.\n\n1. Enter new meal\n2. Add a food item to the database\n3. View Catalog\n4. Show Current Log\n5. Estimate calories (for meals too complex to calculate)\n6. Delete meal entry\n7. Remove database item\n: "
-add_meal_msg = "Add an item from the list: "
+if DEBUG:
+    # Debug dirs
+    database_dir = "/data/data/com.termux/files/home/diet/debug/"
+    log_dir = "/data/data/com.termux/files/home/diet/debug/"
+    filename = "debug_db.dat"
+    print("debug")
+else:
+    # Directory strings (need to be changed depending on platform)
+    database_dir = "/data/data/com.termux/files/home/.food/"
+    log_dir = "/data/data/com.termux/files/home/food_logs/"
+    filename = "foods.dat"
 
 # The directory name for the log file. Will use the same file for a 24 hour period because the name
 # will only change once a day has passed.
+database = Database(dirpath=database_dir,filename=filename,fieldname="name")
 log_path = "%s%d_%.2d_%.2d_%s" % (log_dir,time.localtime()[0],time.localtime()[1],time.localtime()[2],time.ctime().split(" ")[0] + "_food_log.txt")
+use_current_log = get_string("Use log file: " + log_path.split("/")[-1] + "? (Enter for yes. n for no) ")
+if use_current_log != "":
+    logfile = get_log()
+    log_path = log_dir + logfile
+    print("Using logfile: %s" % logfile)
+
+# Strings
+start_msg = "\nEnter <q> to exit.\n\n1. Enter new meal\n2. Add a food item to the database\n3. View Catalog\n4. Show Current Log\n5. Estimate calories (for meals too complex to calculate)\n6. Delete meal entry\n7. Remove database item\n8. Search for database item\n: "
+add_meal_msg = "Add an item from the list\n: "
+
 
 # Get the first input from the user
 user_input_1 = get_number(start_msg,int)
 
 # Clear the terminal
-cls()
+#if not DEBUG: 
+#    cls()
 
+# TODO: Features: Access previous logs; Compare different logs with intersections and unions
 ## 1 for meal entry and 2 for adding new food to database for future retreival
 while user_input_1 != 'q':
     if user_input_1 == 1:
         meal_entry,servings = add_meal(add_meal_msg,database)
         add_to_log(meal_entry,servings,log_path)
-    elif user_input_1 == 2:
+    if user_input_1 == 2:
         create_new_food_item(database)
-    elif user_input_1 == 3:
+    if user_input_1 == 3:
         list_items(database)
-    elif user_input_1 == 4:
+    if user_input_1 == 4:
         show_meals(log_path)
-    elif user_input_1 == 5:
+    if user_input_1 == 5:
         estimate_calories(log_path)
-    elif user_input_1 == 6:
+    if user_input_1 == 6:
         delete_entry(database,log_path)
-    elif user_input_1 == 7:
+    if user_input_1 == 7:
         remove_database_item(database)
+    if user_input_1 == 8:
+        search_database(database)
+    if user_input_1 == 9:
+        view_previous_logs()
     user_input_1 = get_number(start_msg,int)
-    cls()
+    #if not DEBUG:
+    #    cls()

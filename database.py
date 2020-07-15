@@ -17,7 +17,6 @@ class Database:
             self.pathname = self.dirpath + filename
         else:
             self.pathname = self.dirpath + "/" + filename
-        self.sorted = False
         self.load_list()
         self.sort()
 
@@ -61,9 +60,8 @@ class Database:
         return False
 
     def sort(self):
-        if not self.sorted and self.fieldname != "":
+        if self.fieldname != "":
             self.data.sort(key = self.current_field)
-            self.sorted = True
 
     # ( Needs additional work for better modularity as it currently depends on the existence of a name field in the item )
     def current_field(self,item):
@@ -74,13 +72,20 @@ class Database:
 
     # Add item to main list
     def put(self, new_item):
+        self.data.append(new_item)
         self.sort()
-        if len(self.data) > 2:   
+        '''if len(self.data) > 1:   
             for i in range(len(self.data)-1):
-                if self.current_field(new_item) >= self.current_field(self.data[i]) and self.current_field(new_item) <= self.current_field(self.data[i+1]):
-                    self.data.insert(i,new_item)
+                if self.current_field(new_item) > self.current_field(self.data[i]) and self.current_field(new_item) < self.current_field(self.data[i+1]):
+                    self.data.insert(i+1,new_item)
+            if i == len(self.data) - 1:
+                print("Appended.")
+                self.data.append(new_item)
         else:
-            self.data.append(new_item)
+            print("Appended.")
+            self.data.append(new_item)'''
+
+
     def load_list(self):
         if os.path.isfile(self.pathname):
             with open(self.pathname,"rb") as f:
@@ -90,7 +95,6 @@ class Database:
                         self.data.append(current_object)
                     except EOFError:
                         break
-            self.sorted = False
 
     ## The save_data method will do a couple of things: first, it checks if the file exists in the current directory. If the file
     # does not exist, then it will be created in a hidden directory within the user's home directory. Because the database checks for

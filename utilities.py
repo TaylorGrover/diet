@@ -1,5 +1,7 @@
+import datetime
 import os
 import sys
+import time
 
 def cls():
     os.system("clear")
@@ -22,7 +24,9 @@ def get_number(msg,num_type):
     return_value = 0
     while True or not isinstance(return_value, num_type):
         try:
-            return_value = eval(input(msg))
+            # Get the string first then try to evaluate it separately
+            return_value = input(msg)
+            return_value = eval(return_value)
             '''if "/" in return_value:
                 return_value = float(return_value.split("/")[0])/float(return_value.split("/")[1])'''
             return_value = num_type(return_value)
@@ -52,7 +56,7 @@ def remove_database_item(db):
     index = get_number("Enter index of database item to remove: ",int)
     y_or_n = ""
     while (y_or_n != "y") and (y_or_n != "n"):
-        y_or_n = input("Are you sure? (Y/n)").lower()
+        y_or_n = input("Are you sure you want to remove " + str(db[index]) + "? (Y/n)").lower()
     if y_or_n == "y":
         db.pop(index)
     else:
@@ -64,3 +68,34 @@ def convert(array,object_type):
     for item in array:
         new_array.append(object_type(item))
     return new_array
+
+def get_log():
+    year = get_number("Year: ", int)
+    month = get_number("Month: ", int)
+    day = get_number("Day: ", int)
+    day_name = datetime.date(year,month,day).strftime("%a")
+    string = "%.4d_%.2d_%.2d_%s_food_log.txt" % (year,month,day,day_name)
+    return string
+
+def find(pattern, arr, caseInsensitive=True):
+    if caseInsensitive:
+        pattern = pattern.lower()
+    matchArr = []
+    currentIndex = 0
+    prevIndex = 0
+    for arrIndex, string in enumerate(arr):
+        originalString=str(string)
+        if caseInsensitive:
+            string = str(string).lower()
+        for charIndex, char in enumerate(string):
+            if char == pattern[currentIndex]:
+                currentIndex += 1
+                prevIndex = charIndex
+            if charIndex-prevIndex > 1:
+                #print(str(charIndex-prevIndex) + ":\tWord: " + string)
+                currentIndex=0
+            if currentIndex == len(pattern):
+                matchArr.append((arrIndex,originalString))
+                currentIndex=0
+                break
+    return matchArr
